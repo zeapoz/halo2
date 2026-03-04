@@ -35,7 +35,8 @@ pub(crate) const ROUND_CONSTANTS: [u32; ROUNDS] = [
     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
 ];
 
-const IV: [u32; STATE] = [
+/// SHA-256 initial hash state words (the standard IV).
+pub const IV: [u32; STATE] = [
     0x6a09_e667,
     0xbb67_ae85,
     0x3c6e_f372,
@@ -50,6 +51,15 @@ const IV: [u32; STATE] = [
 /// A word in a `Table16` message block.
 // TODO: Make the internals of this struct private.
 pub struct BlockWord(pub Value<u32>);
+
+/// A 32-bit word represented in-circuit as `pallas::Base::from(word)`.
+#[derive(Clone, Debug)]
+pub struct AssignedWord32 {
+    /// The assigned cell holding `pallas::Base::from(word)`.
+    pub cell: AssignedCell<pallas::Base, pallas::Base>,
+    /// The native `u32` witness value used for host-side arithmetic.
+    pub value: Value<u32>,
+}
 
 #[derive(Clone, Debug)]
 /// Little-endian bits (up to 64 bits)
@@ -323,6 +333,15 @@ impl Table16Chip {
         layouter: &mut impl Layouter<pallas::Base>,
     ) -> Result<(), Error> {
         SpreadTableChip::load(config.lookup, layouter)
+    }
+
+    /// Converts the internal state into post-round words while preserving assigned cells.
+    pub fn digest_cells(
+        &self,
+        layouter: &mut impl Layouter<pallas::Base>,
+        state: &State,
+    ) -> Result<[AssignedWord32; super::DIGEST_SIZE], Error> {
+        self.config().compression.digest_cells(layouter, state.clone())
     }
 }
 

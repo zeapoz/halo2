@@ -1,7 +1,8 @@
 use super::{
     super::DIGEST_SIZE,
     util::{i2lebsp, lebs2ip},
-    AssignedBits, BlockWord, SpreadInputs, SpreadVar, Table16Assignment, ROUNDS, STATE,
+    AssignedBits, AssignedWord32, BlockWord, SpreadInputs, SpreadVar, Table16Assignment, ROUNDS,
+    STATE,
 };
 use halo2_proofs::{
     circuit::{Layouter, Value},
@@ -922,16 +923,23 @@ impl CompressionConfig {
         layouter: &mut impl Layouter<pallas::Base>,
         state: State,
     ) -> Result<[BlockWord; DIGEST_SIZE], Error> {
-        let mut digest = [BlockWord(Value::known(0)); DIGEST_SIZE];
+        let digest_cells = layouter.assign_region(
+            || "digest",
+            |mut region| self.assign_digest_cells(&mut region, state.clone()),
+        )?;
+        Ok(digest_cells.map(|word| BlockWord(word.value)))
+    }
+
+    /// After the final round, return the per-word digest deltas with assigned cells.
+    pub(super) fn digest_cells(
+        &self,
+        layouter: &mut impl Layouter<pallas::Base>,
+        state: State,
+    ) -> Result<[AssignedWord32; DIGEST_SIZE], Error> {
         layouter.assign_region(
             || "digest",
-            |mut region| {
-                digest = self.assign_digest(&mut region, state.clone())?;
-
-                Ok(())
-            },
-        )?;
-        Ok(digest)
+            |mut region| self.assign_digest_cells(&mut region, state.clone()),
+        )
     }
 }
 
