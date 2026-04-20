@@ -343,6 +343,35 @@ impl Table16Chip {
     ) -> Result<[AssignedWord32; super::DIGEST_SIZE], Error> {
         self.config().compression.digest_cells(layouter, state.clone())
     }
+
+    /// Like [`Sha256Instructions::compress`], but also returns the `(lo, hi)`
+    /// 16-bit halves for the 16 input words `W_0..W_15`. This lets callers
+    /// copy-constrain external cells to bytes of the SHA-256 preimage.
+    #[allow(clippy::type_complexity)]
+    pub fn compress_with_input_halves(
+        &self,
+        layouter: &mut impl Layouter<pallas::Base>,
+        initialized_state: &State,
+        input: [BlockWord; super::BLOCK_SIZE],
+    ) -> Result<
+        (
+            State,
+            [(AssignedBits<16>, AssignedBits<16>); super::BLOCK_SIZE],
+        ),
+        Error,
+    > {
+        let config = self.config();
+        let (_, w_halves) = config.message_schedule.process(layouter, input)?;
+        let input_halves: [(AssignedBits<16>, AssignedBits<16>); super::BLOCK_SIZE] = w_halves
+            [..super::BLOCK_SIZE]
+            .to_vec()
+            .try_into()
+            .expect("BLOCK_SIZE halves");
+        let state = config
+            .compression
+            .compress(layouter, initialized_state.clone(), w_halves)?;
+        Ok((state, input_halves))
+    }
 }
 
 impl Sha256Instructions<pallas::Base> for Table16Chip {
