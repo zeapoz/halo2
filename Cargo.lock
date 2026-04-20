@@ -840,7 +840,7 @@ dependencies = [
 name = "halo2"
 version = "0.1.0-beta.2"
 dependencies = [
- "halo2_proofs",
+ "halo2_proofs 0.3.0",
 ]
 
 [[package]]
@@ -852,8 +852,8 @@ dependencies = [
  "criterion",
  "ff",
  "group",
- "halo2_poseidon",
- "halo2_proofs",
+ "halo2_poseidon 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "halo2_proofs 0.3.2",
  "inferno",
  "lazy_static",
  "pasta_curves",
@@ -883,6 +883,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "halo2_poseidon"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0fa3da60b81f02f9b33ebc6252d766f843291fb4d2247a07ae73d20b791fc56f"
+dependencies = [
+ "bitvec",
+ "ff",
+ "group",
+ "pasta_curves",
+]
+
+[[package]]
 name = "halo2_proofs"
 version = "0.3.0"
 dependencies = [
@@ -904,6 +916,24 @@ dependencies = [
  "rand_core",
  "tabbycat",
  "tempfile",
+ "tracing",
+]
+
+[[package]]
+name = "halo2_proofs"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "05713f117155643ce10975e0bee44a274bcda2f4bb5ef29a999ad67c1fa8d4d3"
+dependencies = [
+ "blake2b_simd",
+ "ff",
+ "group",
+ "indexmap",
+ "maybe-rayon",
+ "pasta_curves",
+ "plotters",
+ "rand_core",
+ "tabbycat",
  "tracing",
 ]
 
